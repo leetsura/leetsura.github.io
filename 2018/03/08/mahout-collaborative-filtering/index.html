@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="https://pic.leeyf.cc/blog/avatar.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://pic.leeyf.cc/blog/avatar.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://pic.leeyf.cc/blog/avatar.jpg">
+  <link rel="mask-icon" href="https://pic.leeyf.cc/blog/avatar.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.leeyf.cc","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="协同过滤协同过滤简单来说是利用某兴趣相投、拥有共同经验之群体的喜好来推荐用户感兴趣的信息，个人通过合作的机制给予信息相当程度的回应（如评分）并记录下来以达到过滤的目的进而帮助别人筛选信息，回应不一定局限于特别感兴趣的，特别不感兴趣信息的纪录也相当重要。 MahoutMahout 是 Apache Software Foundation（ASF） 旗下的一个开源项目，提供一些可扩展的机器学习领域经典">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mahout实现协同过滤">
+<meta property="og:url" content="https://blog.leeyf.cc/2018/03/08/mahout-collaborative-filtering/index.html">
+<meta property="og:site_name" content="lee&#39;s blog">
+<meta property="og:description" content="协同过滤协同过滤简单来说是利用某兴趣相投、拥有共同经验之群体的喜好来推荐用户感兴趣的信息，个人通过合作的机制给予信息相当程度的回应（如评分）并记录下来以达到过滤的目的进而帮助别人筛选信息，回应不一定局限于特别感兴趣的，特别不感兴趣信息的纪录也相当重要。 MahoutMahout 是 Apache Software Foundation（ASF） 旗下的一个开源项目，提供一些可扩展的机器学习领域经典">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-03-08T13:18:54.000Z">
+<meta property="article:modified_time" content="2022-03-14T14:46:39.579Z">
+<meta property="article:author" content="YunFei Li">
+<meta property="article:tag" content="mahout">
+<meta property="article:tag" content="collaborative filtering">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.leeyf.cc/2018/03/08/mahout-collaborative-filtering/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.leeyf.cc/2018/03/08/mahout-collaborative-filtering/","path":"2018/03/08/mahout-collaborative-filtering/","title":"mahout实现协同过滤"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>mahout实现协同过滤 | lee's blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">lee's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">keep learning</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">协同过滤</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Mahout"><span class="nav-number">2.</span> <span class="nav-text">Mahout</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Mahout%E5%AE%89%E8%A3%85"><span class="nav-number">2.1.</span> <span class="nav-text">Mahout安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#git-clone%E9%80%9F%E5%BA%A6%E6%85%A2%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="nav-number">2.2.</span> <span class="nav-text">git clone速度慢怎么办？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%BE%E7%BD%AE%E7%8E%AF%E5%A2%83"><span class="nav-number">2.3.</span> <span class="nav-text">设置环境</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%96%E8%AF%91"><span class="nav-number">2.4.</span> <span class="nav-text">编译</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%AE%89%E8%A3%85Hadoop"><span class="nav-number">2.5.</span> <span class="nav-text">安装Hadoop</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mahout%E5%AE%9E%E7%8E%B0%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4%EF%BC%88%E5%91%BD%E4%BB%A4%E8%A1%8C%EF%BC%89"><span class="nav-number">2.6.</span> <span class="nav-text">Mahout实现协同过滤（命令行）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mahout%E5%AE%9E%E7%8E%B0%E5%8D%8F%E5%90%8C%E8%BF%87%E6%BB%A4%EF%BC%88%E4%BB%A3%E7%A0%81%EF%BC%89"><span class="nav-number">2.7.</span> <span class="nav-text">Mahout实现协同过滤（代码）</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E9%93%BE%E6%8E%A5"><span class="nav-number">3.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="YunFei Li"
+      src="https://pic.leeyf.cc/blog/avatar.jpg">
+  <p class="site-author-name" itemprop="name">YunFei Li</p>
+  <div class="site-description" itemprop="description">A journey of a thousand miles begins with a single step.</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/leetsura" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;leetsura" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:leeyf.smile@gmail.com" title="E-Mail → mailto:leeyf.smile@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/leetsura" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.leeyf.cc/2018/03/08/mahout-collaborative-filtering/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://pic.leeyf.cc/blog/avatar.jpg">
+      <meta itemprop="name" content="YunFei Li">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lee's blog">
+      <meta itemprop="description" content="A journey of a thousand miles begins with a single step.">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="mahout实现协同过滤 | lee's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          mahout实现协同过滤
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-03-08 21:18:54" itemprop="dateCreated datePublished" datetime="2018-03-08T21:18:54+08:00">2018-03-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-03-14 22:46:39" itemprop="dateModified" datetime="2022-03-14T22:46:39+08:00">2022-03-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/algorithm/" itemprop="url" rel="index"><span itemprop="name">algorithm</span></a>
+        </span>
+          ，
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/algorithm/collaborative-filtering/" itemprop="url" rel="index"><span itemprop="name">collaborative filtering</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/2018/03/08/mahout-collaborative-filtering/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018/03/08/mahout-collaborative-filtering/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="协同过滤"><a href="#协同过滤" class="headerlink" title="协同过滤"></a>协同过滤</h2><p>协同过滤简单来说是利用某兴趣相投、拥有共同经验之群体的喜好来推荐用户感兴趣的信息，个人通过合作的机制给予信息相当程度的回应（如评分）并记录下来以达到过滤的目的进而帮助别人筛选信息，回应不一定局限于特别感兴趣的，特别不感兴趣信息的纪录也相当重要。</p>
+<h2 id="Mahout"><a href="#Mahout" class="headerlink" title="Mahout"></a>Mahout</h2><p>Mahout 是 Apache Software Foundation（ASF） 旗下的一个开源项目，提供一些可扩展的机器学习领域经典算法的实现，旨在帮助开发人员更加方便快捷地创建智能应用程序。Mahout包含许多实现，包括聚类、分类、推荐过滤、频繁子项挖掘。此外，通过使用 Apache Hadoop 库，Mahout 可以有效地扩展到云中。</p>
+<h3 id="Mahout安装"><a href="#Mahout安装" class="headerlink" title="Mahout安装"></a>Mahout安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git <span class="built_in">clone</span> https://github.com/apache/mahout.git mahout</span><br></pre></td></tr></table></figure>
+
+<h3 id="git-clone速度慢怎么办？"><a href="#git-clone速度慢怎么办？" class="headerlink" title="git clone速度慢怎么办？"></a>git clone速度慢怎么办？</h3><p>配置ss代理，假设已有ss代理服务，则在本地安装shadowsocks客户端，开启ss代理。以下为终端shadowsocks客户端安装开启教程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ yum install python-pip</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ pip install shadowsocks</span><br></pre></td></tr></table></figure>
+
+<span id="more"></span>
+
+<p>编辑配置文件&#x2F;path&#x2F;to&#x2F;shadowsocks.json：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;server&quot;:&quot;my_server_ip&quot;,</span><br><span class="line">    &quot;server_port&quot;:8388,</span><br><span class="line">    &quot;local_port&quot;:1080,</span><br><span class="line">    &quot;password&quot;:&quot;barfoo!&quot;,</span><br><span class="line">    &quot;timeout&quot;:600,</span><br><span class="line">    &quot;method&quot;:&quot;chacha20-ietf-poly1305&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>开启ss：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sslocal -c /path/to/shadowsocks.json -d start</span><br></pre></td></tr></table></figure>
+
+<p>假设ss本地端口号为1080，则为git设置socks5代理：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git config --global http.proxy socks5://127.0.0.1:1080</span><br><span class="line">$ git config --global https.proxy socks5://127.0.0.1:1080</span><br></pre></td></tr></table></figure>
+<p>配置文件目录为：~&#x2F;.gitconfig</p>
+<p>若想取消代理，则命令如下（或直接修改~&#x2F;.gitconfig文件）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git config --global --<span class="built_in">unset</span> http.proxy</span><br><span class="line">$ git config --global --<span class="built_in">unset</span> https.proxy</span><br></pre></td></tr></table></figure>
+
+<h3 id="设置环境"><a href="#设置环境" class="headerlink" title="设置环境"></a>设置环境</h3><p>vim ~&#x2F;.bashrc or ~&#x2F;.bash_profile</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> MAHOUT_HOME=/path/to/mahout</span><br><span class="line"><span class="built_in">export</span> MAHOUT_LOCAL=<span class="literal">true</span> <span class="comment"># for running standalone on your dev machine, </span></span><br><span class="line"><span class="comment"># unset MAHOUT_LOCAL for running on a cluster </span></span><br></pre></td></tr></table></figure>
+<p>MAHOUT_LOCAL&#x3D;true时表示在本地服务器运行，不设置MAHOUT_LOCAL时，表示在hadoop集群上运行。</p>
+<h3 id="编译"><a href="#编译" class="headerlink" title="编译"></a>编译</h3><p>运行任何使用Mahout的应用程序都需要安装二进制或源代码版本并设置环境。<br>从源代码编译：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ mvn -DskipTests clean install</span><br></pre></td></tr></table></figure>
+<p><strong>注意：</strong>jdk9编译源码时，因tools.jar已被删除，所以会造成编译失败。详情请见：<a target="_blank" rel="noopener" href="https://docs.oracle.com/javase/9/migrate/toc.htm#JSMIG-GUID-A78CC891-701D-4549-AA4E-B8DD90228B4B">Removed rt.jar and tools.jar</a><br>解决方法如下：</p>
+<ul>
+<li>使用低版本的jdk版本。</li>
+<li>或创建tools.jar软链接<code>ln -s $JAVA_HOME/lib/jrt-fs.jar $JAVA_HOME/lib/tools.jar</code></li>
+</ul>
+<h3 id="安装Hadoop"><a href="#安装Hadoop" class="headerlink" title="安装Hadoop"></a>安装Hadoop</h3><p><a target="_blank" rel="noopener" href="http://hadoop.apache.org/releases.html">安装hadoop</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> HADOOP_HOME=/path/to/hadoop</span><br></pre></td></tr></table></figure>
+
+<h3 id="Mahout实现协同过滤（命令行）"><a href="#Mahout实现协同过滤（命令行）" class="headerlink" title="Mahout实现协同过滤（命令行）"></a>Mahout实现协同过滤（命令行）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mahout recommenditembased --input score-item-based3.csv --output ./result --tempDir ./temp --numRecommendations 300 -s SIMILARITY_PEARSON_CORRELATION</span><br></pre></td></tr></table></figure>
+
+<p>similarityClassname包括：</p>
+<ul>
+<li>SIMILARITY_COOCCURRENCE &#x3D;&gt; 基于同现相似度</li>
+<li>SIMILARITY_LOGLIKELIHOOD &#x3D;&gt; 基于对数似然比的相似度</li>
+<li>SIMILARITY_TANIMOTO_COEFFICIENT &#x3D;&gt; 基于谷本系数计算相似度</li>
+<li>SIMILARITY_CITY_BLOCK &#x3D;&gt; 基于Manhattan距离相似度</li>
+<li>SIMILARITY_COSINE &#x3D;&gt; 计算 Cosine 相似度</li>
+<li>SIMILARITY_PEARSON_CORRELATION &#x3D;&gt; 基于皮尔逊相关系数计算相似度</li>
+<li>SIMILARITY_EUCLIDEAN_DISTANCE &#x3D;&gt; 基于欧几里德距离计算相似度</li>
+</ul>
+<h3 id="Mahout实现协同过滤（代码）"><a href="#Mahout实现协同过滤（代码）" class="headerlink" title="Mahout实现协同过滤（代码）"></a>Mahout实现协同过滤（代码）</h3><p>item.csv:</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">1,101,4.0</span><br><span class="line">1,102,5.0</span><br><span class="line">1,103,3.5</span><br><span class="line">2,101,3.0</span><br><span class="line">2,102,3.5</span><br><span class="line">2,103,4.0</span><br><span class="line">2,104,3.0</span><br><span class="line">3,101,1.5</span><br><span class="line">3,104,4.0</span><br><span class="line">3,105,4.5</span><br><span class="line">3,107,5.0</span><br><span class="line">4,101,4.0</span><br><span class="line">4,103,3.0</span><br><span class="line">4,104,4.5</span><br><span class="line">4,106,3.0</span><br><span class="line">5,101,4.0</span><br><span class="line">5,102,3.0</span><br><span class="line">5,103,5.0</span><br><span class="line">5,104,4.0</span><br><span class="line">5,105,2.5</span><br><span class="line">5,106,4.0</span><br></pre></td></tr></table></figure>
+
+<p>UserCF:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.conan.mymahout.recommendation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.common.TasteException;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.impl.model.file.FileDataModel;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.impl.similarity.EuclideanDistanceSimilarity;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.model.DataModel;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.recommender.RecommendedItem;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.recommender.Recommender;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.similarity.UserSimilarity;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserCF</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">NEIGHBORHOOD_NUM</span> <span class="operator">=</span> <span class="number">2</span>;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">RECOMMENDER_NUM</span> <span class="operator">=</span> <span class="number">3</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, TasteException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">file</span> <span class="operator">=</span> <span class="string">&quot;datafile/item.csv&quot;</span>;</span><br><span class="line">        <span class="type">DataModel</span> <span class="variable">model</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileDataModel</span>(<span class="keyword">new</span> <span class="title class_">File</span>(file));</span><br><span class="line">        <span class="type">UserSimilarity</span> <span class="variable">user</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">EuclideanDistanceSimilarity</span>(model);</span><br><span class="line">        <span class="type">NearestNUserNeighborhood</span> <span class="variable">neighbor</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">NearestNUserNeighborhood</span>(NEIGHBORHOOD_NUM, user, model);</span><br><span class="line">        <span class="type">Recommender</span> <span class="variable">r</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">GenericUserBasedRecommender</span>(model, neighbor, user);</span><br><span class="line">        <span class="type">LongPrimitiveIterator</span> <span class="variable">iter</span> <span class="operator">=</span> model.getUserIDs();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span> (iter.hasNext()) &#123;</span><br><span class="line">            <span class="type">long</span> <span class="variable">uid</span> <span class="operator">=</span> iter.nextLong();</span><br><span class="line">            List&lt;RecommendedItem&gt; list = r.recommend(uid, RECOMMENDER_NUM);</span><br><span class="line">            System.out.printf(<span class="string">&quot;uid:%s&quot;</span>, uid);</span><br><span class="line">            <span class="keyword">for</span> (RecommendedItem ritem : list) &#123;</span><br><span class="line">                System.out.printf(<span class="string">&quot;(%s,%f)&quot;</span>, ritem.getItemID(), ritem.getValue());</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>ItemCF:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.conan.mymahout.recommendation;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.common.TasteException;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.impl.common.LongPrimitiveIterator;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.impl.model.file.FileDataModel;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.impl.recommender.GenericItemBasedRecommender;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.model.DataModel;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.recommender.RecommendedItem;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.recommender.Recommender;</span><br><span class="line"><span class="keyword">import</span> org.apache.mahout.cf.taste.similarity.ItemSimilarity;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ItemCF</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">RECOMMENDER_NUM</span> <span class="operator">=</span> <span class="number">50</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException, TasteException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">file</span> <span class="operator">=</span> <span class="string">&quot;datafile/item.csv&quot;</span>;</span><br><span class="line">        <span class="type">DataModel</span> <span class="variable">model</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">FileDataModel</span>(<span class="keyword">new</span> <span class="title class_">File</span>(file));</span><br><span class="line">        <span class="type">ItemSimilarity</span> <span class="variable">similarity</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">PearsonCorrelationSimilarity</span>(model);</span><br><span class="line">        <span class="type">Recommender</span> <span class="variable">recommender</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">GenericItemBasedRecommender</span>(model, similarity);</span><br><span class="line"></span><br><span class="line">        <span class="type">LongPrimitiveIterator</span> <span class="variable">iter</span> <span class="operator">=</span> model.getUserIDs();</span><br><span class="line">        <span class="keyword">while</span> (iter.hasNext()) &#123;</span><br><span class="line">            <span class="type">long</span> <span class="variable">uid</span> <span class="operator">=</span> iter.nextLong();</span><br><span class="line">            List&lt;RecommendedItem&gt; list = recommender.recommend(uid, RECOMMENDER_NUM);</span><br><span class="line">            System.out.printf(<span class="string">&quot;uid:%s&quot;</span>, uid);</span><br><span class="line">            <span class="keyword">for</span> (RecommendedItem ritem : list) &#123;</span><br><span class="line">                System.out.printf(<span class="string">&quot;(%s,%f)&quot;</span>, ritem.getItemID(), ritem.getValue());</span><br><span class="line">            &#125;</span><br><span class="line">            System.out.println();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://bluewhale.cc/2016-03-11/collaborative-filtering.html">协同过滤推荐算法的原理及实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.ibm.com/developerworks/cn/web/1103_zhaoct_recommstudy2/index.html">深入推荐引擎相关算法 - 协同过滤</a></li>
+<li><a target="_blank" rel="noopener" href="http://blog.javachen.com/2015/06/10/collaborative-filtering-using-mahout.html">使用Mahout实现协同过滤</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/mahout/" rel="tag"># mahout</a>
+              <a href="/tags/collaborative-filtering/" rel="tag"># collaborative filtering</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/03/07/https-ssl/" rel="prev" title="Let's Encrypt生成免费证书">
+                  <i class="fa fa-chevron-left"></i> Let's Encrypt生成免费证书
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments" id="disqus_thread">
+    <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+  </div>
+  
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">YunFei Li</span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="disqus" type="application/json">{"enable":true,"shortname":"leetsura-blog","count":true,"i18n":{"disqus":"disqus"}}</script>
+<script src="/js/third-party/comments/disqus.js"></script>
+
+</body>
+</html>

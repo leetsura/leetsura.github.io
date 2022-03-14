@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 6.0.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="https://pic.leeyf.cc/blog/avatar.jpg">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://pic.leeyf.cc/blog/avatar.jpg">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://pic.leeyf.cc/blog/avatar.jpg">
+  <link rel="mask-icon" href="https://pic.leeyf.cc/blog/avatar.jpg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css" integrity="sha256-jTIdiMuX/e3DGJUGwl3pKSxuc6YOuqtJYkM0bGQESA4=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.leeyf.cc","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.10.1","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="php可以通过curl扩展抓取页面数据，然后用preg_match&#x2F;preg_match_all进行模式匹配或者使用DOM获取想要的数据。相关组件如下：guzzle： 一个PHP的HTTP客户端,用来轻而易举地发送请求，并集成到我们的WEB服务上。可使用该组件发送HTTP请求。DomCrawler：该组件简化了DOM操作，利用DOM提取需要获取的数据。 CURL单线程：示例代码： 123">
+<meta property="og:type" content="article">
+<meta property="og:title" content="php爬虫">
+<meta property="og:url" content="https://blog.leeyf.cc/2018/03/06/php-spider-md/index.html">
+<meta property="og:site_name" content="lee&#39;s blog">
+<meta property="og:description" content="php可以通过curl扩展抓取页面数据，然后用preg_match&#x2F;preg_match_all进行模式匹配或者使用DOM获取想要的数据。相关组件如下：guzzle： 一个PHP的HTTP客户端,用来轻而易举地发送请求，并集成到我们的WEB服务上。可使用该组件发送HTTP请求。DomCrawler：该组件简化了DOM操作，利用DOM提取需要获取的数据。 CURL单线程：示例代码： 123">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-03-06T07:48:58.000Z">
+<meta property="article:modified_time" content="2022-03-14T14:46:39.580Z">
+<meta property="article:author" content="YunFei Li">
+<meta property="article:tag" content="php">
+<meta property="article:tag" content="spider">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.leeyf.cc/2018/03/06/php-spider-md/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://blog.leeyf.cc/2018/03/06/php-spider-md/","path":"2018/03/06/php-spider-md/","title":"php爬虫"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>php爬虫 | lee's blog</title>
+  
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">lee's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">keep learning</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#CURL"><span class="nav-number">1.</span> <span class="nav-text">CURL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8D%95%E7%BA%BF%E7%A8%8B%EF%BC%9A"><span class="nav-number">1.1.</span> <span class="nav-text">单线程：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%EF%BC%9A"><span class="nav-number">1.2.</span> <span class="nav-text">多线程：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E7%BA%BF%E7%A8%8B%E8%83%BD%E4%B8%8D%E8%83%BD%E6%8F%90%E9%AB%98%E6%80%A7%E8%83%BD%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">多线程能不能提高性能？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B7%A5%E4%BD%9C%E7%BA%BF%E7%A8%8B%E6%95%B0%E6%98%AF%E4%B8%8D%E6%98%AF%E8%B6%8A%E5%A4%9A%E8%B6%8A%E5%A5%BD%EF%BC%9F"><span class="nav-number">2.1.</span> <span class="nav-text">工作线程数是不是越多越好？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A6%82%E6%9E%9CCPU%E6%98%AF%E5%8D%95%E6%A0%B8%EF%BC%8C%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%9C%89%E6%84%8F%E4%B9%89%E5%90%97%EF%BC%8C%E8%83%BD%E6%8F%90%E9%AB%98%E5%B9%B6%E5%8F%91%E6%80%A7%E8%83%BD%E5%90%97%EF%BC%9F"><span class="nav-number">2.2.</span> <span class="nav-text">如果CPU是单核，多线程有意义吗，能提高并发性能吗？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Guzzle-DomCrawler"><span class="nav-number">3.</span> <span class="nav-text">Guzzle + DomCrawler</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Guzzle%E5%AE%89%E8%A3%85"><span class="nav-number">3.1.</span> <span class="nav-text">Guzzle安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DomCrawler%E5%AE%89%E8%A3%85"><span class="nav-number">3.2.</span> <span class="nav-text">DomCrawler安装</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Guzzle-DomCrawler%E5%8D%95%E7%BA%BF%E7%A8%8B%E6%8A%93%E5%8F%96%E6%95%B0%E6%8D%AE%EF%BC%9A"><span class="nav-number">3.3.</span> <span class="nav-text">Guzzle + DomCrawler单线程抓取数据：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Guzzle-DomCrawler%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%8A%93%E5%8F%96%E6%95%B0%E6%8D%AE%EF%BC%9A"><span class="nav-number">3.4.</span> <span class="nav-text">Guzzle + DomCrawler多线程抓取数据：</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#User-Agent%E5%88%97%E8%A1%A8"><span class="nav-number">4.</span> <span class="nav-text">User-Agent列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AB%98%E5%8C%BF%E5%90%8D%E4%BB%A3%E7%90%86IP%E5%BA%93"><span class="nav-number">5.</span> <span class="nav-text">高匿名代理IP库</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E6%8A%93%E5%8F%96%E5%8A%A8%E6%80%81%E7%BD%91%E9%A1%B5%E6%95%B0%E6%8D%AE%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">如何抓取动态网页数据？</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="YunFei Li"
+      src="https://pic.leeyf.cc/blog/avatar.jpg">
+  <p class="site-author-name" itemprop="name">YunFei Li</p>
+  <div class="site-description" itemprop="description">A journey of a thousand miles begins with a single step.</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">9</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/leetsura" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;leetsura" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:leeyf.smile@gmail.com" title="E-Mail → mailto:leeyf.smile@gmail.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+
+
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/leetsura" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://blog.leeyf.cc/2018/03/06/php-spider-md/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="https://pic.leeyf.cc/blog/avatar.jpg">
+      <meta itemprop="name" content="YunFei Li">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="lee's blog">
+      <meta itemprop="description" content="A journey of a thousand miles begins with a single step.">
+    </span>
+    
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="php爬虫 | lee's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          php爬虫
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2018-03-06 15:48:58" itemprop="dateCreated datePublished" datetime="2018-03-06T15:48:58+08:00">2018-03-06</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2022-03-14 22:46:39" itemprop="dateModified" datetime="2022-03-14T22:46:39+08:00">2022-03-14</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/spider/" itemprop="url" rel="index"><span itemprop="name">spider</span></a>
+        </span>
+    </span>
+
+  
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/2018/03/06/php-spider-md/#disqus_thread" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018/03/06/php-spider-md/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>php可以通过curl扩展抓取页面数据，然后用preg_match&#x2F;preg_match_all进行模式匹配或者使用DOM获取想要的数据。相关组件如下：<br><a target="_blank" rel="noopener" href="http://docs.guzzlephp.org/en/stable/">guzzle</a>： 一个PHP的HTTP客户端,用来轻而易举地发送请求，并集成到我们的WEB服务上。可使用该组件发送HTTP请求。<br><a target="_blank" rel="noopener" href="https://symfony.com/doc/current/components/dom_crawler.html">DomCrawler</a>：该组件简化了DOM操作，利用DOM提取需要获取的数据。</p>
+<h2 id="CURL"><a href="#CURL" class="headerlink" title="CURL"></a>CURL</h2><h3 id="单线程："><a href="#单线程：" class="headerlink" title="单线程："></a>单线程：</h3><p>示例代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// 创建一个新cURL资源</span></span><br><span class="line"><span class="variable">$ch</span> = <span class="title function_ invoke__">curl_init</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置URL和相应的选项</span></span><br><span class="line"><span class="title function_ invoke__">curl_setopt</span>(<span class="variable">$ch</span>, CURLOPT_URL, <span class="string">&quot;http://www.example.com/&quot;</span>);</span><br><span class="line"><span class="comment">// 启用时不将头文件的信息作为数据流输出。</span></span><br><span class="line"><span class="title function_ invoke__">curl_setopt</span>(<span class="variable">$ch</span>, CURLOPT_HEADER, <span class="number">0</span>);</span><br><span class="line"><span class="comment">// TRUE 将curl_exec()获取的信息以字符串返回，而不是直接输出。</span></span><br><span class="line"><span class="title function_ invoke__">curl_setopt</span>(<span class="variable">$ch</span>, CURLOPT_RETURNTRANSFER, <span class="literal">true</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 抓取URL并把它传递给浏览器</span></span><br><span class="line"><span class="comment">// 成功时返回 TRUE， 或者在失败时返回 FALSE。 然而，如果 设置了 CURLOPT_RETURNTRANSFER 选项，函数执行成功时会返回执行的结果，失败时返回 FALSE 。</span></span><br><span class="line"><span class="title function_ invoke__">curl_exec</span>(<span class="variable">$ch</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 关闭cURL资源，并且释放系统资源</span></span><br><span class="line"><span class="title function_ invoke__">curl_close</span>(<span class="variable">$ch</span>);</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>CURLOPT_XXX请参考：<a target="_blank" rel="noopener" href="http://php.net/manual/zh/function.curl-setopt.php">php curl_setopt</a></p>
+<p>curl抓取页面时，建议设置CURLOPT_TIMEOUT，避免因网络问题造成请求时间过长。</p>
+<p>常用的CURLOPT_XXX：</p>
+<ul>
+<li><p>CURLOPT_URL: 需要获取的 URL 地址，也可以在curl_init() 初始化会话的时候。</p>
+</li>
+<li><p>CURLOPT_HEADER: 启用时会将头文件的信息作为数据流输出。(true&#x2F;false)</p>
+</li>
+</ul>
+<span id="more"></span>
+
+<ul>
+<li><p>CURLOPT_RETURNTRANSFER: TRUE 将curl_exec()获取的信息以字符串返回，而不是直接输出。(true&#x2F;false)</p>
+</li>
+<li><p>CURLOPT_PROXY: HTTP 代理通道。(http(s):&#x2F;&#x2F;ip:port)</p>
+</li>
+<li><p>CURLOPT_USERAGENT: 在HTTP请求中包含一个”User-Agent:”头的字符串。</p>
+</li>
+<li><p>CURLOPT_TIMEOUT: 允许 cURL 函数执行的最长秒数。</p>
+</li>
+<li><p>CURLOPT_COOKIE: 设定 HTTP 请求中”Cookie: “部分的内容。多个 cookie 用分号分隔，分号后带一个空格(例如， “fruit&#x3D;apple; colour&#x3D;red”)。</p>
+</li>
+<li><p>CURLOPT_COOKIEFILE: 包含 cookie 数据的文件名，cookie 文件的格式可以是 Netscape 格式，或者只是纯 HTTP 头部风格，存入文件。如果文件名是空的，不会加载 cookie，但 cookie 的处理仍旧启用。(“&#x2F;path&#x2F;to&#x2F;cookie_file”)</p>
+</li>
+<li><p>CURLOPT_COOKIEJAR: 连接结束后，比如，调用 curl_close 后，保存 cookie 信息的文件。(“&#x2F;path&#x2F;to&#x2F;save_cookie_file_path”)</p>
+</li>
+<li><p>CURLOPT_POST: TRUE 时会发送 POST 请求，类型为：application&#x2F;x-www-form-urlencoded，是 HTML 表单提交时最常见的一种。</p>
+</li>
+<li><p>CURLOPT_POSTFIELDS: 全部数据使用HTTP协议中的 “POST” 操作来发送。 要发送文件，在文件名前面加上@前缀并使用完整路径。 文件类型可在文件名后以 ‘;type&#x3D;mimetype’ 的格式指定。 这个参数可以是 urlencoded 后的字符串，类似’para1&#x3D;val1&amp;para2&#x3D;val2&amp;…’，也可以使用一个以字段名为键值，字段数据为值的数组。 如果value是一个数组，Content-Type头将会被设置成multipart&#x2F;form-data。 从 PHP 5.2.0 开始，使用 @ 前缀传递文件时，value 必须是个数组。 从 PHP 5.5.0 开始, @ 前缀已被废弃，文件可通过 CURLFile 发送。 设置 CURLOPT_SAFE_UPLOAD 为 TRUE 可禁用 @ 前缀发送文件，以增加安全性。</p>
+</li>
+</ul>
+<h3 id="多线程："><a href="#多线程：" class="headerlink" title="多线程："></a>多线程：</h3><p>示例代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">// 创建一对cURL资源</span></span><br><span class="line"><span class="variable">$ch1</span> = <span class="title function_ invoke__">curl_init</span>();</span><br><span class="line"><span class="variable">$ch2</span> = <span class="title function_ invoke__">curl_init</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 设置URL和相应的选项</span></span><br><span class="line"><span class="title function_ invoke__">curl_setopt</span>(<span class="variable">$ch1</span>, CURLOPT_URL, <span class="string">&quot;http://lxr.php.net/&quot;</span>);</span><br><span class="line"><span class="title function_ invoke__">curl_setopt</span>(<span class="variable">$ch1</span>, CURLOPT_HEADER, <span class="number">0</span>);</span><br><span class="line"><span class="title function_ invoke__">curl_setopt</span>(<span class="variable">$ch2</span>, CURLOPT_URL, <span class="string">&quot;http://www.php.net/&quot;</span>);</span><br><span class="line"><span class="title function_ invoke__">curl_setopt</span>(<span class="variable">$ch2</span>, CURLOPT_HEADER, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建批处理cURL句柄</span></span><br><span class="line"><span class="variable">$mh</span> = <span class="title function_ invoke__">curl_multi_init</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 增加2个句柄</span></span><br><span class="line"><span class="title function_ invoke__">curl_multi_add_handle</span>(<span class="variable">$mh</span>,<span class="variable">$ch1</span>);</span><br><span class="line"><span class="title function_ invoke__">curl_multi_add_handle</span>(<span class="variable">$mh</span>,<span class="variable">$ch2</span>);</span><br><span class="line"></span><br><span class="line"><span class="variable">$active</span> = <span class="literal">null</span>;</span><br><span class="line"><span class="comment">// 执行批处理句柄</span></span><br><span class="line"><span class="keyword">do</span> &#123;</span><br><span class="line">    <span class="variable">$mrc</span> = <span class="title function_ invoke__">curl_multi_exec</span>(<span class="variable">$mh</span>, <span class="variable">$active</span>);</span><br><span class="line">&#125; <span class="keyword">while</span> (<span class="variable">$mrc</span> == CURLM_CALL_MULTI_PERFORM);</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="variable">$active</span> &amp;&amp; <span class="variable">$mrc</span> == CURLM_OK) &#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="title function_ invoke__">curl_multi_select</span>(<span class="variable">$mh</span>) != -<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            <span class="variable">$mrc</span> = <span class="title function_ invoke__">curl_multi_exec</span>(<span class="variable">$mh</span>, <span class="variable">$active</span>);</span><br><span class="line">            <span class="keyword">if</span> (<span class="variable">$mrc</span> &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                <span class="comment">// 错误处理</span></span><br><span class="line">                <span class="comment">// curl_multi_strerror($mrc)，返回可用错误代码所对应的错误信息，否则返回 NULL。</span></span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">while</span> (<span class="variable">$mrc</span> == CURLM_CALL_MULTI_PERFORM);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 关闭全部句柄</span></span><br><span class="line"><span class="title function_ invoke__">curl_multi_remove_handle</span>(<span class="variable">$mh</span>, <span class="variable">$ch1</span>);</span><br><span class="line"><span class="title function_ invoke__">curl_multi_remove_handle</span>(<span class="variable">$mh</span>, <span class="variable">$ch2</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 获取返回信息</span></span><br><span class="line"><span class="variable">$res1</span> = <span class="title function_ invoke__">curl_multi_getcontent</span>(<span class="variable">$ch1</span>);</span><br><span class="line"><span class="variable">$res2</span> = <span class="title function_ invoke__">curl_multi_getcontent</span>(<span class="variable">$ch2</span>);</span><br><span class="line"></span><br><span class="line"><span class="title function_ invoke__">curl_multi_close</span>(<span class="variable">$mh</span>);</span><br></pre></td></tr></table></figure>
+<p>curl_multi必须等待一次并发中所有请求都响应或请求超时后，才会执行下一次并发。</p>
+<h2 id="多线程能不能提高性能？"><a href="#多线程能不能提高性能？" class="headerlink" title="多线程能不能提高性能？"></a>多线程能不能提高性能？</h2><p>多线程在CPU密集型的作业下不会提高性能甚至更浪费时间，但在IO密集型作业下则可以提升性能（平均响应时间）。</p>
+<h3 id="工作线程数是不是越多越好？"><a href="#工作线程数是不是越多越好？" class="headerlink" title="工作线程数是不是越多越好？"></a>工作线程数是不是越多越好？</h3><ul>
+<li>一个CPU核数有限，同时并发的线程数也有限，单核CPU设置1000个工作线程没有意义。</li>
+<li>线程切换需要开销，频繁地切换线程，反而会降低性能。</li>
+</ul>
+<h3 id="如果CPU是单核，多线程有意义吗，能提高并发性能吗？"><a href="#如果CPU是单核，多线程有意义吗，能提高并发性能吗？" class="headerlink" title="如果CPU是单核，多线程有意义吗，能提高并发性能吗？"></a>如果CPU是单核，多线程有意义吗，能提高并发性能吗？</h3><p>即使是单核CPU，多线程也是有意义的。</p>
+<ul>
+<li>多线程可以让我们的代码&#x2F;服务更加清晰，有些IO线程收发包，有些workder线程进行任务处理，有些timeout线程进行超时检测。</li>
+<li>如果有任务一只占用着CPU资源进行计算，那么增加线程并不增加并发。</li>
+<li>通常情况下，workder线程不会一直占用CPU进行计算，此时即使CPU是单核的，增加workder线程也可以提高并发，因为这个线程在休息的时候，其他线程可以继续工作。</li>
+</ul>
+<h2 id="Guzzle-DomCrawler"><a href="#Guzzle-DomCrawler" class="headerlink" title="Guzzle + DomCrawler"></a>Guzzle + DomCrawler</h2><h3 id="Guzzle安装"><a href="#Guzzle安装" class="headerlink" title="Guzzle安装"></a>Guzzle安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Install Composer</span></span><br><span class="line">curl -sS https://getcomposer.org/installer | php</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ composer require guzzlehttp/guzzle:~6.0</span><br></pre></td></tr></table></figure>
+<p>或者<br>在composer.json中添加依赖：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;require&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">     <span class="attr">&quot;guzzlehttp/guzzle&quot;</span><span class="punctuation">:</span> <span class="string">&quot;~6.0&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="http://docs.guzzlephp.org/en/stable/quickstart.html">Guzzle官方文档</a></p>
+<h3 id="DomCrawler安装"><a href="#DomCrawler安装" class="headerlink" title="DomCrawler安装"></a>DomCrawler安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ composer require symfony/dom-crawler</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="https://symfony.com/doc/current/components/dom_crawler.html">DomCrawler官方文档</a></p>
+<h3 id="Guzzle-DomCrawler单线程抓取数据："><a href="#Guzzle-DomCrawler单线程抓取数据：" class="headerlink" title="Guzzle + DomCrawler单线程抓取数据："></a>Guzzle + DomCrawler单线程抓取数据：</h3><p>示例代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="title">GuzzleHttp</span>\<span class="title">Cookie</span>\<span class="title">CookieJar</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">Symfony</span>\<span class="title">Component</span>\<span class="title">DomCrawler</span>\<span class="title">Crawler</span>;</span><br><span class="line"></span><br><span class="line"><span class="variable">$requestOptions</span> = [</span><br><span class="line">    <span class="string">&#x27;headers&#x27;</span>         =&gt; [</span><br><span class="line">        <span class="string">&#x27;User-Agent&#x27;</span> =&gt; <span class="string">&#x27;Mozilla/5.0 (X11...&#x27;</span>,</span><br><span class="line">    ],</span><br><span class="line">    <span class="string">&#x27;cookies&#x27;</span>         =&gt; <span class="keyword">new</span> <span class="title class_">CookieJar</span>(),</span><br><span class="line">    <span class="string">&#x27;connect_timeout&#x27;</span> =&gt; <span class="number">5</span>,</span><br><span class="line">    <span class="string">&#x27;timeout&#x27;</span>         =&gt; <span class="number">5</span>,</span><br><span class="line">];</span><br><span class="line"></span><br><span class="line"><span class="variable">$res</span> = <span class="string">&#x27;&#x27;</span>;</span><br><span class="line"><span class="comment">//微博用户tid</span></span><br><span class="line"><span class="variable">$tid</span> = <span class="string">&#x27;tid&#x27;</span>;</span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">// 使用高匿名代理ip库</span></span><br><span class="line">    <span class="comment">// 避免单ip被封禁</span></span><br><span class="line">    <span class="comment">/* $httpProxy = &#x27;tcp://ip:port&#x27;</span></span><br><span class="line"><span class="comment">    if ($httpProxy) &#123;</span></span><br><span class="line"><span class="comment">        $requestOptions[&#x27;proxy&#x27;] = [</span></span><br><span class="line"><span class="comment">            &#x27;http&#x27; =&gt; $httpProxy,</span></span><br><span class="line"><span class="comment">        ];</span></span><br><span class="line"><span class="comment">    &#125; */</span></span><br><span class="line"></span><br><span class="line">    <span class="variable">$client</span> = <span class="keyword">new</span> <span class="title class_">Client</span>();</span><br><span class="line">    <span class="variable">$uri</span>    = <span class="string">&#x27;http://tw.weibo.com/&#x27;</span> . <span class="variable">$tid</span> . <span class="string">&#x27;/follow&#x27;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// guzzle单线程抓取数据</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="variable">$res</span> = <span class="variable">$client</span>-&gt;<span class="title function_ invoke__">request</span>(</span><br><span class="line">            <span class="string">&#x27;GET&#x27;</span>,</span><br><span class="line">            <span class="variable">$uri</span>,</span><br><span class="line">            <span class="variable">$requestOptions</span></span><br><span class="line">        )-&gt;<span class="title function_ invoke__">getBody</span>()-&gt;<span class="title function_ invoke__">getContents</span>();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (\<span class="built_in">Exception</span> <span class="variable">$e</span>) &#123;</span><br><span class="line">        <span class="keyword">continue</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">break</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// DomCrawler提取所需数据</span></span><br><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="variable">$crawler</span> = <span class="keyword">new</span> <span class="title class_">Crawler</span>(<span class="variable">$res</span>);</span><br><span class="line">    <span class="variable">$pgTxt</span>   = <span class="variable">$crawler</span>-&gt;<span class="title function_ invoke__">filter</span>(<span class="string">&#x27;.pgTxt&#x27;</span>)-&gt;<span class="title function_ invoke__">text</span>();</span><br><span class="line">    <span class="title function_ invoke__">preg_match</span>(<span class="string">&#x27;/共(.*?)頁/&#x27;</span>, <span class="variable">$pgTxt</span>, <span class="variable">$page</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">empty</span>(<span class="variable">$page</span>)) &#123;</span><br><span class="line">        <span class="variable">$page</span> = <span class="number">0</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="variable">$page</span> = <span class="variable">$page</span>[<span class="number">1</span>];</span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">catch</span> (\<span class="built_in">Exception</span> <span class="variable">$e</span>) &#123;</span><br><span class="line">    <span class="variable">$page</span> = <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Guzzle-DomCrawler多线程抓取数据："><a href="#Guzzle-DomCrawler多线程抓取数据：" class="headerlink" title="Guzzle + DomCrawler多线程抓取数据："></a>Guzzle + DomCrawler多线程抓取数据：</h3><p>示例代码如下：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">use</span> <span class="title">GuzzleHttp</span>\<span class="title">Client</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">GuzzleHttp</span>\<span class="title">Cookie</span>\<span class="title">CookieJar</span>;</span><br><span class="line"><span class="keyword">use</span> <span class="title">Symfony</span>\<span class="title">Component</span>\<span class="title">DomCrawler</span>\<span class="title">Crawler</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 微博用户tid</span></span><br><span class="line"><span class="variable">$tid</span> = <span class="string">&#x27;tid&#x27;</span>;</span><br><span class="line"><span class="variable">$pageSize</span> = <span class="number">32</span>;</span><br><span class="line"><span class="comment">// 微博关注列表</span></span><br><span class="line"><span class="variable">$uri</span>      = <span class="string">&#x27;http://tw.weibo.com/api/user/follow&#x27;</span>;</span><br><span class="line"><span class="variable">$client</span>   = <span class="keyword">new</span> <span class="title class_">Client</span>();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 异步请求</span></span><br><span class="line"><span class="variable">$requests</span> = <span class="function"><span class="keyword">function</span> (<span class="params"><span class="variable">$pageCount</span></span>) <span class="keyword">use</span> (<span class="params"><span class="variable">$pageSize</span>, <span class="variable">$uri</span>, <span class="variable">$tid</span>, <span class="variable">$client</span></span>) </span>&#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="variable">$page</span> = <span class="number">1</span>; <span class="variable">$page</span> &lt;= <span class="variable">$pageCount</span>; <span class="variable">$page</span>++) &#123;</span><br><span class="line">        <span class="variable">$referer</span> = <span class="string">&#x27;http://tw.weibo.com/&#x27;</span> . <span class="variable">$tid</span> . <span class="string">&#x27;/follow/p/&#x27;</span> . <span class="variable">$page</span>;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">yield</span> <span class="function"><span class="keyword">function</span> (<span class="params"></span>) <span class="keyword">use</span> (<span class="params"><span class="variable">$client</span>, <span class="variable">$pageSize</span>, <span class="variable">$uri</span>, <span class="variable">$tid</span>, <span class="variable">$referer</span>, <span class="variable">$page</span></span>) </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="variable">$client</span>-&gt;<span class="title function_ invoke__">requestAsync</span>(</span><br><span class="line">                <span class="string">&#x27;POST&#x27;</span>,</span><br><span class="line">                <span class="variable">$uri</span>,</span><br><span class="line">                <span class="variable language_">$this</span>-&gt;<span class="title function_ invoke__">getRequestOptions</span>(<span class="variable">$referer</span>, <span class="variable">$page</span>, <span class="variable">$pageSize</span>, <span class="variable">$tid</span>)</span><br><span class="line">            );</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 并发请求</span></span><br><span class="line"><span class="variable">$pageCount</span> = <span class="number">10</span>;</span><br><span class="line"><span class="variable">$pool</span>      = <span class="keyword">new</span> <span class="title class_">Pool</span>(<span class="variable">$client</span>, <span class="variable">$requests</span>(<span class="variable">$pageCount</span>), [</span><br><span class="line">	<span class="comment">// 并发数</span></span><br><span class="line">    <span class="string">&#x27;concurrency&#x27;</span> =&gt; <span class="number">10</span>,</span><br><span class="line">    <span class="comment">// 请求成功回应</span></span><br><span class="line">    <span class="string">&#x27;fulfilled&#x27;</span>   =&gt; <span class="function"><span class="keyword">function</span> (<span class="params">Response <span class="variable">$response</span>, <span class="variable">$index</span></span>) <span class="keyword">use</span> (<span class="params"><span class="variable">$uid</span>, <span class="variable">$tid</span>, <span class="variable">$offset</span></span>) </span>&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="variable">$index</span> . PHP_EOL;</span><br><span class="line">        <span class="variable">$body</span>    = <span class="variable">$response</span>-&gt;<span class="title function_ invoke__">getBody</span>()-&gt;<span class="title function_ invoke__">getContents</span>();</span><br><span class="line">        <span class="comment">// DomCrawler</span></span><br><span class="line">        <span class="variable">$crawler</span> = <span class="keyword">new</span> <span class="title class_">Crawler</span>(<span class="variable">$body</span>);</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="variable">$tids</span> = <span class="variable">$crawler</span>-&gt;<span class="title function_ invoke__">filter</span>(<span class="string">&#x27;.addFollow&#x27;</span>)-&gt;<span class="title function_ invoke__">each</span>(<span class="function"><span class="keyword">function</span> (<span class="params">Crawler <span class="variable">$item</span></span>) </span>&#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="variable">$item</span>-&gt;<span class="title function_ invoke__">attr</span>(<span class="string">&#x27;uid&#x27;</span>);</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (\<span class="built_in">Exception</span> <span class="variable">$e</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">empty</span>(<span class="variable">$tids</span>)) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// IO存储任务放入队列执行</span></span><br><span class="line">        <span class="comment">// $job = (new SaveTids($uid, $tid, $tids, $index, $offset))</span></span><br><span class="line">        <span class="comment">//     -&gt;onQueue(&#x27;curl&#x27;);</span></span><br><span class="line">        <span class="comment">// dispatch($job);</span></span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="comment">// 请求失败回应</span></span><br><span class="line">    <span class="string">&#x27;rejected&#x27;</span>    =&gt; <span class="function"><span class="keyword">function</span> (<span class="params"><span class="variable">$reason</span>, <span class="variable">$index</span></span>) <span class="keyword">use</span> (<span class="params"><span class="variable">$tid</span></span>) </span>&#123;</span><br><span class="line">    	<span class="comment">// 请求失败后放入队列继续抓取</span></span><br><span class="line">        <span class="comment">// $job = (new SaveUndealtTids($tid, $index))-&gt;onQueue(&#x27;curl&#x27;);</span></span><br><span class="line">        <span class="comment">// dispatch($job);</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;,</span><br><span class="line">]);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Initiate the transfers and create a promise</span></span><br><span class="line"><span class="variable">$promise</span> = <span class="variable">$pool</span>-&gt;<span class="title function_ invoke__">promise</span>();</span><br><span class="line"><span class="comment">// Force the pool of requests to complete.</span></span><br><span class="line"><span class="variable">$promise</span>-&gt;<span class="title function_ invoke__">wait</span>();</span><br></pre></td></tr></table></figure>
+<p><a target="_blank" rel="noopener" href="http://docs.guzzlephp.org/en/stable/quickstart.html#async-requests">Guzzle异步请求文档</a><br><a target="_blank" rel="noopener" href="http://docs.guzzlephp.org/en/stable/quickstart.html#concurrent-requests">Guzzle并发请求文档</a></p>
+<h2 id="User-Agent列表"><a href="#User-Agent列表" class="headerlink" title="User-Agent列表"></a>User-Agent列表</h2><p>部分User-Agent列表如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line">&quot;Mozilla/5.0 (X11; CrOS x86_64 5841.83.0) AppleWebKit/537.36 (KHTML like Gecko) Chrome/36.0.1985.138 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.132 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.18 (KHTML, like Gecko) Chrome/32.0.1667.0 Safari/537.18&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/534.30 (KHTML, like Gecko) Chrome/12.0.742.4 Safari/534.30&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/534.13 (KHTML, like Gecko) Chrome/9.0.597.15 Safari/534.13&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 5.2; en-US) AppleWebKit/534.16 (KHTML, like Gecko) Chrome/10.0.648.205 Safari/534.16&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Linux; U; Linux Ventana; en-us; Transformer TF101G Build/HTJ85B) AppleWebKit/534.13 (KHTML, like Gecko) Chrome/8.0 Safari/534.13&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.59 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/534.24 (KHTML, like Gecko) Chrome/11.0.696.34 Safari/534.24 XiaoMi/MiuiBrowser/1.0&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.2 (KHTML, like Gecko) Chrome/22.0 Safari/537.2&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US) AppleWebKit/531.0 (KHTML, like Gecko) Chrome/3.0.195.0 Safari/531.0 SE 2.X&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/532.9 (KHTML, like Gecko) Chrome/5.0 Safari/532.9&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/533.8 (KHTML, like Gecko) Chrome/6.0.397.0 Safari/533.8&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_3) AppleWebKit/537.36 (KHTML, like Gecko, Google-Publisher-Plugin) Chrome/27.0.1453 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.65 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 6.2; en-US) AppleWebKit/534.7 (KHTML, like Gecko) Chrome/7.0.517.41 Safari/534.7&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (X11; FreeBSD; U; Viera; cs-CZ) AppleWebKit/537.11 (KHTML, like Gecko) Viera/3.3.3 Chrome/23.0.1271.97 Safari/537.11&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (X11; U; Unix; en-US) AppleWebKit/537.15 (KHTML, like Gecko) Chrome/24.0.1295.0 Safari/537.15 Surf/0.6&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.0 AOL/9.7 AOLBuild/4343.3029.gb Safari/537.1&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.94 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 6.1;de) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/1.0.154.43 Safari/525.19&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/532.5 (KHTML, like Gecko) Chrome/4.1.249.1025 Safari/532.5&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 6.0; en-US) AppleWebKit/532.2 (KHTML, like Gecko) Chrome/4.0.222.12 Safari/532.2&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.8 (KHTML, like Gecko) Chrome/20.0.1105.2 Safari/536.8&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/536.5 (KHTML, like Gecko) Chrome/19.0.1084.9 Safari/536.5&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.0.1364.2 Safari/537.22&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 5.0) AppleWebKit/5351 (KHTML, like Gecko) Chrome/15.0.849.0 Safari/5351&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.93 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.118 Safari/537.36 davecampbell&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_3) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.77 Safari/535.7&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1) AppleWebKit/5321 (KHTML, like Gecko) Chrome/14.0.867.0 Safari/5321&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 5.2; en-US) AppleWebKit/534.31 (KHTML, like Gecko) Chrome/17.0.558.0 Safari/534.31 UCBrowser/57B75BEEF&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/34.0.1847.118 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.94 AOL/9.7 AOLBuild/4343.4025.de Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/530.9 (KHTML, like Gecko) Chrome/2.0.180.0 Safari/530.9&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 5.1; de) AppleWebKit/525.13 (KHTML, like Gecko) Chrome/0.2.149.27 Safari/525.13&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (X11; FreeBSD amd64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.62 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Dragon/46.9.15.424 Chrome/46.0.2490.86 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.0.10802 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (X11; FreeBSD i386) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/13.0.782.112 Safari/535.1&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.3.154.9 Safari/525.19&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.116 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_6_8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.107 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.19 (KHTML, like Gecko) Chrome/0.4.154.33 Safari/525.19&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.1.0.0 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.2.0.0 Safari/537.17&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.0; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.2.0.0 Safari/537.11&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.1.0.0 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.47 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.4.0.0 Safari/537.11&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Chrome/25.1.0.0 Safari/537.22&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.2.2.0 Safari/537.31&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.2.0.0 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.1.0.0 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.1.0.0 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.31 (KHTML, like Gecko) Chrome/26.4.9999.1836 Safari/537.31 BDSpark/26.4&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (X11; U; Linux x86_64; en-US) AppleWebKit/540.0 (KHTML,like Gecko) Chrome/9.1.0.0 Safari/540.0&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) coc_coc_browser/52.2.90 Chrome/46.2.2490.90 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.2357.124 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.4.2526.80 Safari/537.36&quot;,</span><br><span class="line">&quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2655.0 Safari/537.36&quot;,</span><br></pre></td></tr></table></figure>
+<p>更多User-Agent列表可见：<a target="_blank" rel="noopener" href="https://github.com/serbanghita/Mobile-Detect/blob/master/tests/UA_List.pending.txt">User-Agent列表</a></p>
+<h2 id="高匿名代理IP库"><a href="#高匿名代理IP库" class="headerlink" title="高匿名代理IP库"></a>高匿名代理IP库</h2><p>为防止单ip爬虫遭遇封禁，可选择高匿名代理ip库，若爬虫目标服务厂商存在一些高匿名代理ip黑名单，即使使用高匿名代理ip也会遭遇封禁。可用代理IP库如下：</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://www.goubanjia.com/buy/dynamic.html">http://www.goubanjia.com/buy/dynamic.html</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.ip3366.net/">http://www.ip3366.net/</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.xicidaili.com/nn">http://www.xicidaili.com/nn</a></li>
+<li><a target="_blank" rel="noopener" href="http://www.data5u.com/">http://www.data5u.com/</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.kuaidaili.com/free/">https://www.kuaidaili.com/free/</a></li>
+</ul>
+<p>免费代理池（IPProxyPool）：<a target="_blank" rel="noopener" href="https://github.com/qiyeboy/IPProxyPool">qiyeboy&#x2F;IPProxyPool</a></p>
+<h2 id="如何抓取动态网页数据？"><a href="#如何抓取动态网页数据？" class="headerlink" title="如何抓取动态网页数据？"></a>如何抓取动态网页数据？</h2><p>动态网页由js脚本动态生成网页，仅使用curl无法获取完整页面源码，可使用<strong>phantomjs</strong>或者<strong>selenium</strong>模拟浏览器操作。详情请见：<a href="/2018/03/05/php-curl-dynamic-web-md">php抓取动态页面数据</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/php/" rel="tag"># php</a>
+              <a href="/tags/spider/" rel="tag"># spider</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/03/05/php-curl-dynamic-web-md/" rel="prev" title="php抓取动态页面数据">
+                  <i class="fa fa-chevron-left"></i> php抓取动态页面数据
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/03/07/https-ssl/" rel="next" title="Let's Encrypt生成免费证书">
+                  Let's Encrypt生成免费证书 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+    
+  <div class="comments" id="disqus_thread">
+    <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+  </div>
+  
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2022</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">YunFei Li</span>
+</div>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+
+
+
+
+
+  
+
+
+
+
+<script class="next-config" data-name="disqus" type="application/json">{"enable":true,"shortname":"leetsura-blog","count":true,"i18n":{"disqus":"disqus"}}</script>
+<script src="/js/third-party/comments/disqus.js"></script>
+
+</body>
+</html>
